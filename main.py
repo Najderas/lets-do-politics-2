@@ -1,145 +1,127 @@
 import os
 import crawler as Crawler
-import csv
+import read_write_data as rwlib
+import sentiment_analyser as analyser
+import read_write_statistics as rwstats
 import time
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+import winsound
+import matplotlib.pyplot as plt
 
-
-def import_crawled_data(data, name=None):
-    with open((name or "data_crawled_data.csv"), 'rb') as csvfile:
-        data_reader = csv.reader(csvfile, delimiter=chr(9), quotechar='|')
-        for row in data_reader:
-            data.append((row[0].decode('utf-8'), row[1].decode('utf-8')))
-
-
-def import_crawled_urls(urls, name=None):
-    with open((name or "data_crawled_urls.csv"), 'rb') as csvfile:
-        data_reader = csv.reader(csvfile, delimiter=chr(9), quotechar='|')
-        for row in data_reader:
-            print row[0].decode('utf-8')
-            urls.append(row[0].decode('utf-8'))
-
-
-def import_urls_to_crawl(urls, name=None):
-    with open((name or "data_urls_to_crawl.csv"), 'rb') as csvfile:
-        data_reader = csv.reader(csvfile, delimiter=chr(9), quotechar='|')
-        for row in data_reader:
-            urls.append(row[0].decode('utf-8'))
-
-
-def export_crawled_data(data, name=None, folder=None):
-    with open((name or 'data_crawled_data.csv'), 'wb') as csvfile:
-        data_writer = csv.writer(csvfile, delimiter=chr(9), quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        for row in data:
-            data_writer.writerow([s.encode('utf-8') for s in row])
-        print "***Data exported to file ", (name or 'data_crawled_data.csv')
-
-    if folder:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        with open(folder + '/' + (name or 'data_crawled_data.csv'), 'wb') as csvfile:
-            data_writer = csv.writer(csvfile, delimiter=chr(9), quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            for row in data:
-                data_writer.writerow([s.encode('utf-8') for s in row])
-            print "***Data exported to backup file ", folder + "/" + (name or 'data_crawled_data.csv')
-
-
-def export_crawled_urls(urls, name=None, folder=None):
-    with open((name or 'data_crawled_urls.csv'), 'wb') as csvfile:
-        data_writer = csv.writer(csvfile, delimiter=chr(9), quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        for url in urls:
-            data_writer.writerow([url.encode('utf-8'), ])
-        print "***List of crawled URLs exported to file ", (name or "data_crawled_urls.csv")
-
-    if folder:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        with open(folder + '/' + (name or 'data_crawled_urls.csv'), 'wb') as csvfile:
-            data_writer = csv.writer(csvfile, delimiter=chr(9), quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            for url in urls:
-                data_writer.writerow([url.encode('utf-8'), ])
-            print "***List of crawled URLs exported to backup file ", folder + '/' + (name or "data_crawled_urls.csv")
-
-
-def export_urls_to_crawl(urls, name=None, folder=None):
-    with open((name or 'data_urls_to_crawl.csv'), 'wb') as csvfile:
-        data_writer = csv.writer(csvfile, delimiter=chr(9), quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        for url in urls:
-            data_writer.writerow([url.encode('utf-8'), ])
-        print "***List of URLs to crawl exported to file ", (name or "data_urls_to_crawl.csv")
-    if folder:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        with open(folder + '/' + (name or 'data_urls_to_crawl.csv'), 'wb') as csvfile:
-            data_writer = csv.writer(csvfile, delimiter=chr(9), quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            for url in urls:
-                data_writer.writerow([url.encode('utf-8'), ])
-            print "***List of URLs to crawl exported to backup file ", folder + '/' + (name or "data_urls_to_crawl.csv")
+sites_to_crawl = 100
 
 # os.environ["webdriver.chrome.driver"] = chromedriver
 
-if __name__ == "__main__":
+def main_crawl():
+    global sites_to_crawl
     crawled_data = []
     crawled_urls = []
     urls_to_crawl = [
-        'http://www.politico.com/search?adv=true&start=04/01/2016&end=11/16/2016&pv=00000150-1a34-d6c0-a9fb-bfb4f0a50000&s=oldest']
+        # 'http://www.politico.com/search?adv=true&start=04/01/2016&end=11/16/2016&pv=00000150-1a34-d6c0-a9fb-bfb4f0a50000&s=oldest'
+        # 'http://www.politico.com/blogs/2016-presidential-debate-fact-check/2016/10/trump-cant-get-it-right-on-clintons-email-deletion-229469',
+        # 'http://www.politico.com/blogs/2016-presidential-debate-fact-check/2016/10/fact-trump-supported-the-war-in-iraq-before-he-opposed-it-229470',
+        # 'http://www.politico.com/story/2016/10/2016-presidential-debate-donald-trump-muslim-ban-extreme-vetting-229468',
+        # 'http://www.politico.com/blogs/2016-presidential-debate-fact-check/2016/10/trump-gets-clintons-tax-plan-totally-wrong-229479',
+        # 'http://www.politico.com/search/252?s=oldest&adv=true&start=04%2F01%2F2016&end=11%2F16%2F2016&pv=00000150-1a34-d6c0-a9fb-bfb4f0a50000'
+    ]
 
-    import_crawled_data(crawled_data)
-    import_crawled_urls(crawled_urls)
-    import_urls_to_crawl(urls_to_crawl)
+    rwlib.import_crawled_data(crawled_data)
+    rwlib.import_crawled_urls(crawled_urls)
+    rwlib.import_urls_to_crawl(urls_to_crawl)
 
     new_crawled_data = []
 
+    print "\nurls to crawl:"
+    for url in urls_to_crawl:
+        print url
 
-    print "\ncrawled data"
-    for d in crawled_data:
-        print d
+    crawler = Crawler.WebCrawler(urls_to_crawl, crawled_urls, new_crawled_data)
 
-    print "\nurls to crawl"
-    print "---".join(urls_to_crawl)
+    retry = 10
+    while retry > 0:
+        try:
+            crawler.start(sites_to_crawl)
+            retry = 0
+        except:
+            print "#####################"
+            print "##  ERROR OCCURED  ##"
+            print "#####################"
+            retry -= 1
+            sites_to_crawl /= 1.6
 
-    print "\ncrawled urls"
-    print "---".join(crawled_urls)
+    crawled_data.extend(new_crawled_data)
 
+    print "Summary: found ", len(new_crawled_data), " new comments, of ", len(crawled_data), " all"
 
+    curr_time = time.strftime("%Y-%m-%d-%H-%M", time.gmtime())
+    rwlib.export_crawled_data(crawled_data, None, "backup-"+curr_time)
+    rwlib.export_crawled_urls(crawled_urls, None, "backup-"+curr_time)
+    rwlib.export_urls_to_crawl(urls_to_crawl, None, "backup-"+curr_time)
 
-
-
-    # crawler = Crawler.WebCrawler(urls_to_crawl, crawled_urls, new_crawled_data)
-    #
-    # try:
-    #     crawler.start(300)
-    # except:
-    #     pass
-    #
-    # print "Summary: ", len(new_crawled_data), " new comments"
-    #
-    # crawled_data.extend(new_crawled_data)
-    #
-    # curr_time = time.strftime("%Y-%m-%d-%H-%M", time.gmtime())
-    # export_crawled_data(crawled_data, None, "backup-"+curr_time)
-    # export_crawled_urls(crawled_urls, None, "backup-"+curr_time)
-    # export_urls_to_crawl(urls_to_crawl, None, "backup-"+curr_time)
+    winsound.Beep(440, 3000)   # frequency, duration
 
 
+def main_analyze():
+
+    crawled_data = []
+    rwlib.import_crawled_data(crawled_data)
+
+    (trump_summary, clinton_summary) = analyser.analyse_sentiment(crawled_data)
+
+    rwstats.export_statistics(trump_summary, "data_sentiment_trump.csv")
+    rwstats.export_statistics(clinton_summary, "data_sentiment_clinton.csv")
 
 
+def create_chart():
 
+    trump_summary = dict()
+    rwstats.import_statistics(trump_summary, "data_sentiment_trump.csv")
 
-    # chromedriver = "chromedriver.exe"
-    # chromeOptions = webdriver.ChromeOptions()
-    # prefs = {"profile.managed_default_content_settings.images":2}
-    # chromeOptions.add_experimental_option("prefs",prefs)
-    # driver = webdriver.Chrome(chrome_options=chromeOptions)
-    # # driver = webdriver.Chrome(chromedriver)
-    # # driver = webdriver.Chrome()
-    #
-    # driver.get("http://www.python.org")
-    # assert "Python" in driver.title
-    # elem = driver.find_element_by_name("q")
-    # elem.clear()
-    # elem.send_keys("pycon")
-    # elem.send_keys(Keys.RETURN)
-    # assert "No results found." not in driver.page_source
-    # driver.close()
+    trump_summary_list = [(key, value) for key, value in trump_summary.items()]
+    trump_summary_list.sort(key=lambda a: a[0])
+
+    trump_x = [a[0] for a in trump_summary_list]
+    trump_y = [a[1] for a in trump_summary_list]
+    summmary_sent = 0
+    trump_y_summarized = []
+    for sen in trump_y:
+        summmary_sent += sen
+        trump_y_summarized.append(summmary_sent)
+    # print " # ".join(map(lambda x: str(x), trump_y_summarized))
+
+    clinton_summary = dict()
+    rwstats.import_statistics(clinton_summary, "data_sentiment_clinton.csv")
+
+    clinton_summary_list = [(key, value) for key, value in clinton_summary.items()]
+    clinton_summary_list.sort(key=lambda a: a[0])
+
+    clinton_x = [a[0] for a in clinton_summary_list]
+    clinton_y = [a[1] for a in clinton_summary_list]
+    summmary_sent = 0
+    clinton_y_summarized = []
+    for sen in clinton_y:
+        summmary_sent += sen
+        clinton_y_summarized.append(summmary_sent)
+
+    step = 20
+
+    x = range(len(trump_y_summarized))
+    plt.plot(x, trump_y_summarized, 'r', label="Trump")       #), clinton_x, clinton_y_summarized, 'b')
+    plt.xticks(x[::step], trump_x[::step], rotation='vertical')
+    plt.legend(loc="lower left", shadow=True, fancybox=True)
+
+    x = range(len(clinton_y_summarized))
+    plt.plot(x, clinton_y_summarized, 'b', label="Clinton")       #), clinton_x, clinton_y_summarized, 'b')
+    plt.xticks(x[::step], clinton_x[::step], rotation='vertical')
+    plt.legend(loc="lower left", shadow=True, fancybox=True)
+
+    plt.savefig("result_plot")
+    plt.show()
+
+if __name__ == "__main__":
+
+    # main_crawl()
+
+    # main_analyze()
+
+    create_chart()
+

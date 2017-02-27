@@ -63,7 +63,7 @@ class WebCrawler(object):
             # for e in driver.find_elements_by_xpath('/span[@class="_5mdd"]/span'):
             for e in driver.find_elements_by_class_name("_5mdd"):
                 # print e, e.text
-                comments.append((date, e.text))
+                comments.append((date, e.text.replace('\n', '   ').replace('\r', '')))
         except:
             print "should i try again? damn you!"
         finally:
@@ -119,7 +119,7 @@ class WebCrawler(object):
         driver = webdriver.Chrome(chrome_options=chromeOptions)
         driver.implicitly_wait(10)
 
-        for i in xrange(number_to_crawl):
+        for i in xrange(int(number_to_crawl)):
             print "##### ", i, " #####"
             self.results.extend(self.crawl(driver))
 
