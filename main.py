@@ -105,16 +105,19 @@ def create_chart():
     step = 20
 
     x = range(len(trump_y_summarized))
-    plt.plot(x, trump_y_summarized, 'r', label="Trump")       #), clinton_x, clinton_y_summarized, 'b')
+    plt.plot(x, trump_y_summarized, 'r', label="Trump")
+    # plt.plot(x, trump_y, 'r', label="Trump")
     plt.xticks(x[::step], trump_x[::step], rotation='vertical')
     plt.legend(loc="lower left", shadow=True, fancybox=True)
 
     x = range(len(clinton_y_summarized))
-    plt.plot(x, clinton_y_summarized, 'b', label="Clinton")       #), clinton_x, clinton_y_summarized, 'b')
+    plt.plot(x, clinton_y_summarized, 'b', label="Clinton")
+    # plt.plot(x, clinton_y, 'b', label="Clinton")
     plt.xticks(x[::step], clinton_x[::step], rotation='vertical')
     plt.legend(loc="lower left", shadow=True, fancybox=True)
 
     plt.savefig("result_plot")
+    # plt.savefig("result_plot_not_summarized")
     plt.show()
 
 if __name__ == "__main__":
